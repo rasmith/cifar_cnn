@@ -1,8 +1,10 @@
 import keras
 import numpy as np
+import sys
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Convolution2D, MaxPooling2D
+from keras.callbacks import ModelCheckpoint
 from keras.utils import np_utils
 from cifar import Cifar
 from keras import backend as K
@@ -62,11 +64,18 @@ model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(10, activation='softmax'))
 
+
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
 
-model.fit(train_data, train_labels,
-	  batch_size=32, epochs=20, verbose=1)
+checkpoint_file = 'model.hdf5'
 
-score = model.evaluate(test_data, test_labels, verbose=0)
+if sys.argv[1] == "train":
+	model_checkpoint = ModelCheckpoint(checkpoint_file, monitor='loss')
+	model.fit(train_data, train_labels,
+	  batch_size=32, epochs=100, callbacks=[model_checkpoint], verbose=1)
+else:
+	model.load_weights(checkpoint_file)
+	score = model.evaluate(test_data, test_labels, verbose=1)
+	print(score) 
